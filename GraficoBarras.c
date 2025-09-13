@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdint.h>
 
 //dado com titulo
 typedef struct Dado{
@@ -13,7 +14,7 @@ typedef struct Dado{
 void help(){
     printf("Sintaxe:\n");
     printf("testeGraficos [argumento] [tituloDoGrafico] [numeroDeLinhas] \n");
-    printf("Argumentos suportados: -e (exportar como um arquivo), [-i (inserir dados na execucao) -d (demo)]\n");
+    printf("Argumentos suportados: -e (exportar como um arquivo)(apenas de linha), -b (grafico de barra), -l (grafico de linha) [-i (inserir dados na execucao) -d (demo)]\n");
     printf("Máximo de linhas suportadas: 5\n");
 }
 
@@ -41,20 +42,16 @@ void inserirDados(dado lista[], int tamanho){
 
 void plotaBarra(float valor){
 
-    
-
     for(int j = 0; j<(valor);j++){
             printf("#");
         }
 }
 
 
-void plotGrafico(char* titulo, dado *dados, int quantDados){
+void plotGraficoLinha(char* titulo, dado *dados, int quantDados){
     //char grafico[13][35];
-
-
     //imprime o titulo do grafico
-    for(int i =0; i<42-(strlen(titulo)); i++){
+    for(int i =0; i<36-(strlen(titulo)); i++){
         printf(" ");
     }
     printf("%s\n", titulo);
@@ -75,6 +72,70 @@ void plotGrafico(char* titulo, dado *dados, int quantDados){
 
 }
 
+void plotaGraficoBarra(char* titulo, dado* dados, int quantDados ){
+    for(int i =0; i<20-(strlen(titulo)); i++){
+        printf(" ");
+    }
+    printf("%s\n", titulo);
+
+    float dadosNormalizados[8];
+
+    for(uint16_t i = 0; i<quantDados; i++){
+        dadosNormalizados[i] = (dados[i].valor*20)/dados[0].valor; 
+    }
+
+    for(int i =20; i>=0;i--){
+
+        printf("| ");
+
+        for(uint16_t j = 0; j<quantDados; j++){
+            
+            if(dadosNormalizados[j] >= i){
+                printf(" ##### ");
+            }
+        }
+        printf("\n");
+    }
+
+    for(uint16_t i = 0; i<(quantDados*8)+2;i++){
+        printf("-");
+    } 
+    printf("\n  ");
+
+    for(uint16_t i = 0; i<quantDados; i++){
+        printf(" %.2f ", dados[i].valor);
+    }
+
+   
+    printf("\n  ");
+    for(uint16_t i = 0; i< quantDados; i++){
+
+        if(strlen(dados[i].nome) > 5){
+            printf("%c%c%c%c%c", dados[i].nome[0],
+                dados->nome[1],dados[i].nome[2],
+                dados->nome[3],dados[i].nome[4]);
+        }
+        else{
+            printf(" %s ", dados[i].nome);
+        }
+    }
+    printf("\n ");
+
+    for(uint16_t i = 0; i< quantDados; i++){
+        if(strlen(dados[i].nome) > 5){
+            int j = 5;
+            while(j< strlen(dados[i].nome)){
+                printf("%c", dados[i].nome[j]);
+                j++;
+            }
+        }
+        else{
+            printf("\t");
+        }
+    }
+
+
+}
 
 void salvarArquivo(char* titulo,dado* dados,int quantDados){
         FILE *arquivo;
@@ -131,35 +192,46 @@ int main(int argc, char ** argv){
     */
 
 
-    if(!strcmp(argv[1],"help")){
-        help();
-        return 0;
-    }
+  
 
     if(argc < 3){
-		printf("Consulte 'testeGraficos help'\nSaindo...\n");
-		return 1;
+
+        if(argc < 2 /* || strcmp(argv[1],"-l") || strcmp(argv[1],"-b")*/){
+            printf("Consulte 'testeGraficos help'\nSaindo...\n");
+		    return 1;
+        }
+
+        else if(!strcmp(argv[1],"help")){
+        help();
+        return 0;
+        }
+
+		
 	}
-
-
-
+	
     if(!strcmp(argv[1],"-e")){
         
         int numeroDados = atoi(argv[3]);
         dado listaDados[numeroDados];
         inserirDados(listaDados,numeroDados);
-        plotGrafico(argv[2],listaDados,numeroDados);
+        plotGraficoLinha(argv[2],listaDados,numeroDados);
         salvarArquivo(argv[2],listaDados,numeroDados);
         return 0;
     }
     
-    int numeroDados = atoi(argv[2]);
+    int numeroDados = atoi(argv[3]);
 
     dado listaDados[numeroDados];
 
     inserirDados(listaDados,numeroDados);
 
-    plotGrafico(argv[1], listaDados, numeroDados);
+    if(!strcmp(argv[1],"-l")){
+        plotGraficoLinha(argv[2], listaDados, numeroDados);
+    }
+    if(!strcmp(argv[1],"-b")){
+        plotaGraficoBarra(argv[2], listaDados, numeroDados);
+    }
+    
 
     /* for(int i = 0; i<13;i++){
         for(int j = 0; j<35;j++ ){
