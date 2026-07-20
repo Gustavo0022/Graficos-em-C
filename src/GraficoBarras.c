@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdint.h>
+#include "linkhelper.h"
+
 
 //dado com titulo
 typedef struct Dado{
@@ -17,8 +19,6 @@ void help(){
     printf("Argumentos suportados: -e (exportar como um arquivo)(apenas de linha), -b (grafico de barra), -l (grafico de linha) [-i (inserir dados na execucao) -d (demo)]\n");
     printf("Máximo de linhas suportadas: 5\n");
 }
-
-
 
 void inserirDados(dado lista[], int tamanho){
     for(int i=0; i<tamanho; i++){
@@ -40,8 +40,7 @@ void inserirDados(dado lista[], int tamanho){
     }
 }
 
-void plotaBarra(float valor){
-
+void plotaLinha(float valor){
     for(int j = 0; j<(valor);j++){
             printf("#");
         }
@@ -63,9 +62,9 @@ void plotGraficoLinha(char* titulo, dado *dados, int quantDados){
 
         float numeroDeRepresentacao = (dados[i].valor * 50)/dados[0].valor;
         
-        plotaBarra(numeroDeRepresentacao);
+        plotaLinha(numeroDeRepresentacao);
         printf(" %.2f\n          |",dados[i].valor );
-        plotaBarra(numeroDeRepresentacao);
+        plotaLinha(numeroDeRepresentacao);
         printf("\n          |\n");
     }
     printf("          ----------------------------------------------------------\n");
@@ -137,13 +136,10 @@ void plotaGraficoBarra(char* titulo, dado* dados, int quantDados ){
 
 }
 
-void salvarArquivo(char* titulo,dado* dados,int quantDados){
+void salvarArquivo(char* nomeArquivo,char* titulo,dado* dados,int quantDados){
         FILE *arquivo;
-        char nome[20];
-        printf("Digite o nome do arquivo para exportar: ");
-        scanf("%s", &nome);
-        strcat(nome,".txt");
-        arquivo = fopen(nome, "a");
+        strcat(nomeArquivo,".txt");
+        arquivo = fopen(nomeArquivo, "a");
 
         if (arquivo == NULL){
             printf("Ocorreu um erro ao abrir o arquivo :(\n");
@@ -190,53 +186,33 @@ int main(int argc, char ** argv){
         grafico[i] = calloc(20,sizeof(char));
     }
     */
+    Config* conf = malloc(sizeof(Config));
+    conf->export = 0;
+    conf->bar = 0;
+    conf->demo = 0;
+    conf->help = 0;
+    conf->lines = 0;
+    conf->fileName = NULL;
+    conf->graphTitle = NULL;
+    if(errorHandler(argParser(argc,argv,conf))) return 1;
 
+    dado* dados = malloc(sizeof(dado)*conf->lines);
 
-  
+    inserirDados(dados,conf->lines);
 
-    if(argc < 3){
+    if(conf->export == 1){
+        salvarArquivo(conf->fileName,conf->graphTitle,dados,conf->lines);
+    }
 
-        if(argc < 2 /* || strcmp(argv[1],"-l") || strcmp(argv[1],"-b")*/){
-            printf("Consulte 'testeGraficos help'\nSaindo...\n");
-		    return 1;
-        }
-
-        else if(!strcmp(argv[1],"help")){
-        help();
-        return 0;
-        }
-
-		
-	}
-	
-    if(!strcmp(argv[1],"-e")){
-        
-        int numeroDados = atoi(argv[3]);
-        dado listaDados[numeroDados];
-        inserirDados(listaDados,numeroDados);
-        plotGraficoLinha(argv[2],listaDados,numeroDados);
-        salvarArquivo(argv[2],listaDados,numeroDados);
-        return 0;
+    if(!conf->graphTitle){
+        printf("ERRO FATAL: Sem título do gráfico");
+        return 1;
     }
     
-    int numeroDados = atoi(argv[3]);
-
-    dado listaDados[numeroDados];
-
-    inserirDados(listaDados,numeroDados);
-
-    if(!strcmp(argv[1],"-l")){
-        plotGraficoLinha(argv[2], listaDados, numeroDados);
+    if(conf->bar){
+        plotaGraficoBarra(conf->graphTitle,dados,conf->lines);
+        return 0;
     }
-    if(!strcmp(argv[1],"-b")){
-        plotaGraficoBarra(argv[2], listaDados, numeroDados);
-    }
-    
+    plotGraficoLinha(conf->graphTitle,dados,conf->lines);
 
-    /* for(int i = 0; i<13;i++){
-        for(int j = 0; j<35;j++ ){
-            printf("[%d]",j);
-        }
-        printf("\n");
-    } */
 }
